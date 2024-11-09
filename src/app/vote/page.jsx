@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Card,
     CardContent,
@@ -22,13 +22,16 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
 import {
     CheckCircle2,
     ShieldCheck,
     UserCircle,
     Vote,
     AlertCircle,
-    Loader2
+    Loader2,
+    RefreshCcw,
+    Lock
 } from "lucide-react";
 
 const candidates = [
@@ -52,14 +55,67 @@ const candidates = [
     }
 ];
 
+// Generate random math problem
+const generateCaptcha = () => {
+    const operators = ['+', '-', '*'];
+    const operator = operators[Math.floor(Math.random() * operators.length)];
+    let num1, num2;
+
+    switch (operator) {
+        case '+':
+            num1 = Math.floor(Math.random() * 10) + 1;
+            num2 = Math.floor(Math.random() * 10) + 1;
+            break;
+        case '-':
+            num1 = Math.floor(Math.random() * 10) + 1;
+            num2 = Math.floor(Math.random() * num1) + 1; // Ensure positive result
+            break;
+        case '*':
+            num1 = Math.floor(Math.random() * 5) + 1; // Smaller numbers for multiplication
+            num2 = Math.floor(Math.random() * 5) + 1;
+            break;
+        default:
+            num1 = 0;
+            num2 = 0;
+    }
+
+    return {
+        num1,
+        num2,
+        operator,
+        result: eval(`${num1}${operator}${num2}`)
+    };
+};
+
 const VotingPage = () => {
     const [selectedCandidate, setSelectedCandidate] = useState(null);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isVoteComplete, setIsVoteComplete] = useState(false);
     const [error, setError] = useState('');
+    const [captcha, setCaptcha] = useState(generateCaptcha());
+    const [captchaInput, setCaptchaInput] = useState('');
+    const [captchaError, setCaptchaError] = useState('');
+
+    const refreshCaptcha = () => {
+        setCaptcha(generateCaptcha());
+        setCaptchaInput('');
+        setCaptchaError('');
+    };
+
+    const validateCaptcha = () => {
+        if (parseInt(captchaInput) === captcha.result) {
+            setCaptchaError('');
+            return true;
+        }
+        setCaptchaError('Incorrect answer, please try again');
+        refreshCaptcha();
+        return false;
+    };
 
     const handleVoteSubmit = async () => {
+        if (!validateCaptcha()) return;
+
         setIsSubmitting(true);
         setError('');
 
@@ -175,20 +231,59 @@ const VotingPage = () => {
                 <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
-                            <AlertDialogTitle>Confirm Your Vote</AlertDialogTitle>
+                            <AlertDialogTitle>Security Verification</AlertDialogTitle>
                             <AlertDialogDescription>
-                                You are about to cast your vote for{' '}
+                                Please complete the verification below to confirm your vote for{' '}
                                 <span className="font-medium">
                   {candidates.find(c => c.id === selectedCandidate)?.name}
                 </span>
-                                . This action cannot be undone.
+                                .
                             </AlertDialogDescription>
                         </AlertDialogHeader>
+
+                        <div className="my-4 p-4 bg-slate-50 rounded-lg">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Lock className="w-4 h-4 text-slate-500" />
+                                <h3 className="text-sm font-medium">Security Check</h3>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2">
+                                    <div className="text-lg font-medium">
+                                        {captcha.num1} {captcha.operator} {captcha.num2} = ?
+                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={refreshCaptcha}
+                                        type="button"
+                                    >
+                                        <RefreshCcw className="w-4 h-4" />
+                                    </Button>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Input
+                                        type="text"
+                                        placeholder="Enter your answer"
+                                        value={captchaInput}
+                                        onChange={(e) => {
+                                            setCaptchaInput(e.target.value.replace(/[^0-9]/g, ''));
+                                            setCaptchaError('');
+                                        }}
+                                    />
+                                    {captchaError && (
+                                        <p className="text-sm text-red-500">{captchaError}</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
                         <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
                                 onClick={handleVoteSubmit}
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || !captchaInput}
                             >
                                 {isSubmitting ? (
                                     <>
