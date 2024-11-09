@@ -33,6 +33,7 @@ import {
     RefreshCcw,
     Lock
 } from "lucide-react";
+import {toast} from "@/hooks/use-toast";
 
 const candidates = [
     {
@@ -103,8 +104,12 @@ const VotingPage = () => {
             return true;
         }
         setCaptchaError('Incorrect answer, please try again');
+        toast({
+            title: 'Error',
+            description: 'Incorrect answer, please try again',
+            variant: 'destructive'
+        });
         refreshCaptcha();
-        return false;
     };
 
     const handleVoteSubmit = async () => {
