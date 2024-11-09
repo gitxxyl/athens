@@ -103,7 +103,7 @@ function FaceLogin() {
             setTimeoutReached(true);
             clearInterval(interval);
             closeWebcam();
-            toast({ description: 'Face not recognized', variant: 'destructive'});
+            //if (!authenticationStatus) toast({ description: 'Face not recognized', variant: 'destructive'});
         }, 10000);
     };
 
@@ -116,7 +116,7 @@ function FaceLogin() {
 
     const authenticate = async () => {
         const detections = await faceapi.detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
-        if (detections.length === 0) {
+        if (detections.length === 0 && authenticationStatus === false) {
             toast({ description: 'No face detected' });
             return;
         }

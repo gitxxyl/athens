@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Link from "next/link";
 
 const Demo = () => {
     const [user, setUser] = useState("loading...");
@@ -20,10 +21,6 @@ const Demo = () => {
     }, []);
 
     const handleVoteClick = () => {
-        toast({
-            title: "Navigating to voting",
-            description: "You will be redirected to the decentralized voting system.",
-        });
         router.push("/vote");
     };
 
@@ -56,16 +53,12 @@ const Demo = () => {
                 {/* Voting Button */}
                 {user && user !== "loading..." && (
                     <Button
-                        onClick={handleVoteClick}
+                        asChild
                         className="w-full bg-gray-800 hover:bg-gray-700 text-white py-3 rounded-md font-medium"
                     >
-                        Start Voting
+                        <Link href={'../vote'}>Vote now</Link>
                     </Button>
                 )}
-
-                <p className="text-xs text-gray-400 mt-2">
-                    Click the button above to begin your vote in the decentralized election.
-                </p>
 
                 {/* Informational Alert */}
                 <Alert type="info" className="mt-6 bg-gray-50 border border-gray-300 text-gray-600 rounded-lg">
