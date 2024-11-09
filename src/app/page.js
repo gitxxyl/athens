@@ -30,9 +30,9 @@ const Home = () => {
         }
 
         if (!formData.nric.trim()) {
-            newErrors.nric = 'Last 4 digits of NRIC are required';
-        } else if (!/^\d{4}$/.test(formData.nric)) {
-            newErrors.nric = 'Please enter exactly 4 digits';
+            newErrors.nric = 'Last 5 characters of NRIC are required';
+        } else if (!/^(?:(?=\d*[A-Z]\d*$)(?=.*[0-9])(?:[A-Z0-9]){1,5}|[0-9]{1,4})$/.test(formData.nric)) {
+            newErrors.nric = 'Please enter exactly 5 characters';
         }
 
         setErrors(newErrors);
@@ -99,13 +99,13 @@ const Home = () => {
                                 )}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="nric">Last 4 Digits of NRIC</Label>
+                                <Label htmlFor="nric">Last 5 Characters of NRIC</Label>
                                 <Input
                                     id="nric"
-                                    placeholder="Enter last 4 digits"
-                                    maxLength={4}
+                                    placeholder="Enter last 5 characters"
+                                    maxLength={5}
                                     value={formData.nric}
-                                    onChange={(e) => handleInputChange('nric', e.target.value.replace(/\D/g, ''))}
+                                    onChange={(e) => handleInputChange('nric', e.target.value.replace(/\D\a-z/g, ''))}
                                 />
                                 {errors.nric && (
                                     <p className="text-sm text-red-500">{errors.nric}</p>

@@ -187,7 +187,7 @@ function FaceLogin() {
                 )}
 
                 <div className="mt-6 text-center">
-                    <Link href="/signup" className="text-lg text-indigo-600 hover:text-indigo-500 transition-all duration-200">
+                    <Link href="/enroll" className="text-lg text-indigo-600 hover:text-indigo-500 transition-all duration-200">
                         Don't have an account? Sign up
                     </Link>
                 </div>

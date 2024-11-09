@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import {toast} from "@/hooks/use-toast";
 import {router} from "next/client";
 
-function App() {
+function Enroll() {
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [captureVideo, setCaptureVideo] = useState(false);
   const [enrolledFaces, setEnrolledFaces] = useState([]);
@@ -168,4 +168,4 @@ function App() {
   );
 }
 
-export default App;
+export default Enroll;

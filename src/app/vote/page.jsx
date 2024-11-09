@@ -46,12 +46,6 @@ const candidates = [
         name: "Michael Chen",
         party: "Citizens Alliance",
         position: "City Council"
-    },
-    {
-        id: 3,
-        name: "Elena Rodriguez",
-        party: "Community First",
-        position: "City Council"
     }
 ];
 
