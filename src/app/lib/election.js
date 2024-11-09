@@ -64,24 +64,23 @@ class ModularMath {
 
 class ThresholdSystem { 
     constructor(n, t, p, q, g) {
-        this.n = n; // Total number of authorities
-        this.t = t; // Threshold (t+1 authorities needed)
-        this.p = p; // Prime modulus
-        this.q = q; // Prime order subgroup
-        this.g = g; // Generator
+        this.n = n; 
+        this.t = t; 
+        this.p = p; 
+        this.q = q; 
+        this.g = g; 
         
-        this.shares = new Map(); // Shares for each authority
-        this.publicShares = new Map(); // Public verification values
-        this.publicKey = null; // Joint public key
+        this.shares = new Map(); 
+        this.publicShares = new Map(); 
+        this.publicKey = null; 
       }
     
     generateShares() {
-    // Generate random polynomial coefficients
+    
         const coefficients = Array(this.t)
             .fill(0)
             .map(() => ModularMath.randomInRange(this.q));
         
-        // Generate shares for each authority
         for (let i = 1n; i <= this.n; i++) {
             let share = coefficients[0];
             for (let j = 1; j < coefficients.length; j++) {
@@ -89,15 +88,13 @@ class ThresholdSystem {
             }
             this.shares.set(i, share);
             
-            // Generate verification values
             const verificationValue = ModularMath.modPow(this.g, share, this.p);
             this.publicShares.set(i, verificationValue);
         }
 
-        // Compute joint public key
         this.publicKey = ModularMath.modPow(
             this.g,
-            coefficients[0], // Secret is coefficient[0]
+            coefficients[0], 
             this.p
         );
 
@@ -108,7 +105,6 @@ class ThresholdSystem {
         };
     }
 
-    // Verify share from other authority
     verifyShare(authorityId, share) {
         const verificationValue = ModularMath.modPow(this.g, share, this.p);
         return verificationValue === this.publicShares.get(authorityId);
@@ -116,7 +112,7 @@ class ThresholdSystem {
 
 }
 
-class ElectionSystem { 
+export class ElectionSystem { 
 
     constructor(){ 
         this.p = crypto.generatePrimeSync(64, {bigint: true});
@@ -163,21 +159,17 @@ class ElectionSystem {
     }
 
     createVoteProof(vote, r, privateKey) {
-        // Random values for proof
         const w = ModularMath.randomInRange(this.threshold.q);
         const d = ModularMath.randomInRange(this.threshold.q);
         const t = ModularMath.randomInRange(this.threshold.q);
     
-        // Commitment values
         const a1 = ModularMath.modPow(this.threshold.g, w, this.threshold.p);
         const b1 = vote === 1n ? 
           ModularMath.modPow(this.threshold.g, t, this.threshold.p) :
           ModularMath.modPow(this.threshold.g, d, this.threshold.p);
     
-        // Challenge
         const c = ModularMath.hash(a1, b1);
         
-        // Response values
         const r1 = (w - r * c) % this.threshold.q;
         const r2 = vote === 1n ?
           (t - privateKey * c) % this.threshold.q :
@@ -190,7 +182,6 @@ class ElectionSystem {
         const { a } = ballot;
         const partialDecryption = ModularMath.modPow(a, share, this.threshold.p);
         
-        // Create proof of correct partial decryption
         const w = ModularMath.randomInRange(this.threshold.q);
         const t = ModularMath.modPow(this.threshold.g, w, this.threshold.p);
         const c = ModularMath.hash(a, partialDecryption, t);
@@ -208,21 +199,18 @@ class ElectionSystem {
           throw new Error('Not enough partial decryptions');
         }
     
-        const { a, b } = ballot;
+        const { a, b, proof } = ballot;
         const indices = partialDecryptions.map(pd => pd.authorityId);
         const shares = partialDecryptions.map(pd => pd.partialDecryption);
     
-        // Combine shares using Lagrange interpolation
         const m = ModularMath.lagrangeInterpolate(
           shares,
           indices,
           this.threshold.p
         );
     
-        // Recover vote
         const vote = (b * ModularMath.modInverse(m, this.threshold.p)) % this.threshold.p;
         
-        // Check if vote is 0 or 1
         if (vote === ModularMath.modPow(this.threshold.g, 0n, this.threshold.p)) {
           return 0n;
         } else if (vote === ModularMath.modPow(this.threshold.g, 1n, this.threshold.p)) {
@@ -241,43 +229,20 @@ class ElectionSystem {
     }
 
     tallyVotes(authorityDecryptions) {
-        let yes = 0n;
-        let no = 0n;
+        let one = 0n;
+        let two = 0n;
     
         for (const [voterId, ballot] of this.votes) {
           try {
             const vote = this.combinePartialDecryptions(ballot, authorityDecryptions);
-            if (vote === 1n) yes += 1n;
-            else no += 1n;
+            if (vote === 1n) two += 1n;
+            else one += 1n;
           } catch (error) {
             console.error(`Failed to decrypt vote for ${voterId}: ${error.message}`);
           }
         }
     
-        return { yes: Number(yes), no: Number(no), total: Number(yes + no) };
+        return { one: Number(one), two: Number(two), total: Number(one + two) };
     }
 
 }
-
-
-
-const votingSystem = new ElectionSystem(); 
-const privateKey = ModularMath.randomInRange(votingSystem.q)
-const voterKeyPair = { 
-    privateKey: privateKey,
-    publicKey: ModularMath.modPow(votingSystem.q, privateKey, votingSystem.p)
-};
-
-votingSystem.registerVoter("voter1", voterKeyPair.publicKey);
-
-const ballot = votingSystem.vote("voter1", -1n, voterKeyPair.privateKey);
-
-const partialDecryptions = [];
-for (let i = 1n; i <= 4n; i++) {
-  const pd = votingSystem.createPartialDecryption(i, votingSystem.shares.shares.get(i), ballot);
-  partialDecryptions.push(pd);
-}
-
-// Tally votes
-const results = votingSystem.tallyVotes(partialDecryptions);
-console.log(results);
