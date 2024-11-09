@@ -138,7 +138,7 @@ function FaceLogin() {
         const faceMatcher = new faceapi.FaceMatcher(enrolledFaces.map((face) => new faceapi.LabeledFaceDescriptors(face.name, [face.descriptors])));
         const match = faceMatcher.findBestMatch(detections[0].descriptor);
         if (match.label === 'unknown') {
-            toast({ description: 'Face not recognized' });
+            return
         } else if (match.distance < 0.35) {
             setAuthenticationStatus(true);
             if (typeof window !== 'undefined') {
