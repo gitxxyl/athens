@@ -1,101 +1,145 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+import { useState } from 'react';
+import FaceLogin from "@/components/FaceLogin";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { ChevronRight, UserCircle } from "lucide-react";
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+const Home = () => {
+    const [step, setStep] = useState(1);
+    const [formData, setFormData] = useState({
+        name: '',
+        nric: ''
+    });
+    const [errors, setErrors] = useState({
+        name: '',
+        nric: ''
+    });
+
+    const validateStep1 = () => {
+        const newErrors = {
+            name: '',
+            nric: ''
+        };
+
+        if (!formData.name.trim()) {
+            newErrors.name = 'Name is required';
+        }
+
+        if (!formData.nric.trim()) {
+            newErrors.nric = 'Last 4 digits of NRIC are required';
+        } else if (!/^\d{4}$/.test(formData.nric)) {
+            newErrors.nric = 'Please enter exactly 4 digits';
+        }
+
+        setErrors(newErrors);
+        return !newErrors.name && !newErrors.nric;
+    };
+
+    const handleNext = () => {
+        if (validateStep1()) {
+            setStep(2);
+        }
+    };
+
+    const handleInputChange = (field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+        setErrors(prev => ({
+            ...prev,
+            [field]: ''
+        }));
+    };
+
+    return (
+        <div className="w-screen h-screen bg-slate-100 grid place-items-center overflow-hidden px-4">
+            <div className="w-full max-w-md flex flex-col items-center">
+                {/* Progress indicator */}
+                <div className="mb-4 flex justify-center">
+                    <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            step === 1 ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white'
+                        }`}>
+                            1
+                        </div>
+                        <div className="w-16 h-0.5 bg-slate-200">
+                            <div className={`h-full bg-blue-600 transition-all ${
+                                step === 2 ? 'w-full' : 'w-0'
+                            }`} />
+                        </div>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            step === 2 ? 'bg-blue-600 text-white' : 'bg-slate-200'
+                        }`}>
+                            2
+                        </div>
+                    </div>
+                </div>
+
+                {step === 1 ? (
+                    <Card className="w-full">
+                        <CardHeader>
+                            <CardTitle className="text-center">Personal Information</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Full Name</Label>
+                                <Input
+                                    id="name"
+                                    placeholder="Enter your full name"
+                                    value={formData.name}
+                                    onChange={(e) => handleInputChange('name', e.target.value)}
+                                />
+                                {errors.name && (
+                                    <p className="text-sm text-red-500">{errors.name}</p>
+                                )}
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="nric">Last 4 Digits of NRIC</Label>
+                                <Input
+                                    id="nric"
+                                    placeholder="Enter last 4 digits"
+                                    maxLength={4}
+                                    value={formData.nric}
+                                    onChange={(e) => handleInputChange('nric', e.target.value.replace(/\D/g, ''))}
+                                />
+                                {errors.nric && (
+                                    <p className="text-sm text-red-500">{errors.nric}</p>
+                                )}
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Button
+                                className="w-full"
+                                onClick={handleNext}
+                            >
+                                Continue to Face Verification
+                                <ChevronRight className="w-4 h-4 ml-2" />
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                ) : (
+                    <div className="w-full space-y-4 flex-col justify-center ">
+                        <Card className="w-full">
+                            <CardContent className="pt-6">
+                                <div className="flex items-center gap-3 text-sm text-slate-600">
+                                    <UserCircle className="w-5 h-5" />
+                                    <span>Verifying: {formData.name}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <div className={'w-screen flex justify-center items-center'}>
+                            <FaceLogin />
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
-}
+    );
+};
+
+export default Home;
