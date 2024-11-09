@@ -141,7 +141,7 @@ const VotingPage = () => {
                                 Your vote has been securely recorded. Thank you for participating in the election.
                             </p>
                             <div className="flex items-center gap-2 text-sm text-slate-500 mt-4">
-                                <Button variant={'outline'}><ShieldCheck className="w-4 h-4" />Download blockchain history</Button>
+                                <Button variant={'outline'}><ShieldCheck className="w-4 h-4" />Verify results</Button>
                             </div>
                         </div>
                     </CardContent>
